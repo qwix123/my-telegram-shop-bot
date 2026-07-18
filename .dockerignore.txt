@@ -1,7 +1,0 @@
-__pycache__
-*.pyc
-.git
-.gitignore
-README.md
-.env
-shop_bot.db
