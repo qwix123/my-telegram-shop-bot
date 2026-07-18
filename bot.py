@@ -1,3 +1,4 @@
+
 # bot.py
 
 import asyncio
@@ -7,7 +8,6 @@ import traceback
 
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
-from aiogram.client.default import DefaultBotProperties
 from aiogram.types import ErrorEvent
 
 from config import BOT_TOKEN
@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 async def error_handler(event: ErrorEvent):
+    """Ловим все ошибки и выводим подробно"""
     logger.error("═" * 60)
     logger.error(f"❌ ОШИБКА: {event.exception}")
     logger.error("─" * 60)
@@ -30,12 +31,11 @@ async def error_handler(event: ErrorEvent):
 
 
 async def main():
-    bot = Bot(
-        token=BOT_TOKEN,
-        default=DefaultBotProperties(parse_mode=ParseMode.HTML)
-    )
+    # Для aiogram 3.2.0 используем parse_mode напрямую
+    bot = Bot(token=BOT_TOKEN, parse_mode=ParseMode.HTML)
 
     dp = Dispatcher()
+
     dp.errors.register(error_handler)
 
     dp.include_router(start.router)
@@ -52,6 +52,7 @@ async def main():
     await dp.start_polling(bot)
 
 
+# ---- АВТОПЕРЕЗАПУСК ----
 async def run_with_restart():
     while True:
         try:
