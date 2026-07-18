@@ -3,7 +3,6 @@
 import asyncio
 import logging
 import sys
-import traceback
 
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
@@ -21,57 +20,31 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-async def error_handler(event: ErrorEvent):
-    logger.error("═" * 60)
-    logger.error(f"❌ ОШИБКА: {event.exception}")
-    logger.error("─" * 60)
-    logger.error(traceback.format_exc())
-    logger.error("═" * 60)
-
-
 async def main():
+    # Создаём бота с правильным синтаксисом для aiogram 3.4.1
     bot = Bot(
         token=BOT_TOKEN,
-        default=DefaultBotProperties(parse_mode=ParseMode.HTML),
-        timeout=60  # Таймаут на отправку/получение данных
+        default=DefaultBotProperties(parse_mode=ParseMode.HTML)
     )
 
     dp = Dispatcher()
-    dp.errors.register(error_handler)
 
+    # Подключаем роутеры
     dp.include_router(start.router)
     dp.include_router(stars.router)
     dp.include_router(premium.router)
     dp.include_router(admin.router)
 
+    # Удаляем вебхук и сбрасываем обновления
     await bot.delete_webhook(drop_pending_updates=True)
 
     logger.info("🤖 Бот запущен!")
     logger.info("⭐ Магазин TG Звёзд и Премиума готов к работе!")
     logger.info("💡 Используйте /emoji для получения ID премиум-эмодзи")
 
-    try:
-        await dp.start_polling(bot)
-    except Exception as e:
-        logger.error(f"Ошибка во время поллинга: {e}")
-        raise
-
-
-async def run_with_restart():
-    while True:
-        try:
-            await main()
-        except Exception as e:
-            if "Conflict" in str(e):
-                logger.error("⚠️ Конфликт (два бота с одним токеном). Ждём 30 секунд...")
-                await asyncio.sleep(30)
-            else:
-                logger.error(f"⚠️ Бот упал: {e}. Перезапуск через 5 секунд...")
-                await asyncio.sleep(5)
-        else:
-            logger.info("🛑 Бот остановлен корректно.")
-            break
+    # Запускаем поллинг
+    await dp.start_polling(bot)
 
 
 if __name__ == "__main__":
-    asyncio.run(run_with_restart())
+    asyncio.run(main())
